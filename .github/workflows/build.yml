@@ -1,0 +1,42 @@
+name: Build binaries (Windows, Linux, macOS)
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            name: windows
+            suffix: .exe
+          - os: ubuntu-latest
+            name: linux
+            suffix: ""
+          - os: macos-latest
+            name: macos
+            suffix: ""
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build workspace (release)
+        run: cargo build --release --workspace
+
+      - name: Upload mysql_mcp_http
+        uses: actions/upload-artifact@v4.3.6
+        with:
+          name:  ${{ matrix.name }}-http
+          path: target/release/mysql_mcp_http${{ matrix.suffix }}
+
+      - name: Upload mysql_mcp_stdio
+        uses: actions/upload-artifact@v4.3.6
+        with:
+          name: ${{ matrix.name }}-stdio
+          path: target/release/mysql_mcp_stdio${{ matrix.suffix }}
